@@ -7,6 +7,8 @@ import numpy as np
 import os
 import tempfile
 import time
+import smtplib
+from email.mime.text import MIMEText
 
 parser = argparse.ArgumentParser(
     description='Train and evaluate a net on the MIT mini-places dataset.')
@@ -47,7 +49,10 @@ parser.add_argument('--gpu', type=int, default=0,
     help='GPU ID to use for training and inference (-1 for CPU)')
 parser.add_argument('--use_snapshot_file', default=None,
     help='If set, it will use this file for initial weights.')
+parser.add_argument('--email', default=None,
+    help='If set, an email is sent after processing completes to this address')
 args = parser.parse_args()
+
 
 # disable most Caffe logging (unless env var $GLOG_minloglevel is already set)
 key = 'GLOG_minloglevel'
@@ -301,6 +306,27 @@ def train_net(with_val_net=False):
     solver.net.forward()
     disp_outputs(args.iters)
     solver.net.save(snapshot_at_iteration(args.iters))
+    # Email and let people know about completion.
+    if args.email != None:
+    # AWS Config
+        EMAIL_HOST = 'email-smtp.us-west-2.amazonaws.com'
+        EMAIL_HOST_USER = 'AKIAJBFEECUOZPQSTTPQ'
+        EMAIL_HOST_PASSWORD = 'AgWDZ/Qd466rR7LTH9Nj+0NbLSeDUGb1OedFAqVipr0y'
+        EMAIL_PORT = 587
+
+    	msg = MIMEText("Completed Training")
+    	msg['Subject'] = 'Your neural net has finished training'
+    	msg['From'] = args.email
+    	msg['To'] = args.email
+
+    	# Send the message via our own SMTP server, but don't include the
+    	# envelope header.
+        s = smtplib.SMTP(EMAIL_HOST, EMAIL_PORT)
+        s.starttls()
+        s.login(EMAIL_HOST_USER, EMAIL_HOST_PASSWORD)
+        s.sendmail(args.email, [args.email], msg.as_string())
+    	s.quit()
+    
 
 def eval_net(split, K=5):
     print 'Running evaluation for split:', split
