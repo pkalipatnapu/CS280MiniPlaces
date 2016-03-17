@@ -144,7 +144,7 @@ def minialexnet(data, labels=None, train=False, param=learned_param,
     n.conv6, n.relu6 = conv_relu(n.relu5, 3, 256, pad=1, group=2, **conv_kwargs)
     n.pool6 = max_pool(n.relu6, 3, stride=2, train=train)
     n.fc7, n.relu7 = fc_relu(n.pool6, 1024, param=param)
-    n.drop7 = L.Dropout(n.relu6, in_place=True)
+    n.drop7 = L.Dropout(n.relu7, in_place=True)
     n.fc8, n.relu8 = fc_relu(n.drop7, 1024, param=param)
     n.drop8 = L.Dropout(n.relu8, in_place=True)
     preds = n.fc9 = L.InnerProduct(n.drop8, num_output=num_classes, param=param)
@@ -153,7 +153,7 @@ def minialexnet(data, labels=None, train=False, param=learned_param,
         preds = n.probs = L.Softmax(n.fc9)
     if with_labels:
         n.label = labels
-        n.loss = L.SoftmaxWithLoss(n.fc8, n.label)
+        n.loss = L.SoftmaxWithLoss(n.fc9, n.label)
         n.accuracy_at_1 = L.Accuracy(preds, n.label)
         n.accuracy_at_5 = L.Accuracy(preds, n.label,
                                      accuracy_param=dict(top_k=5))
